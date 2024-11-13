@@ -1,0 +1,1963 @@
+[
+    {
+        "id": "6cab71502c9881aa",
+        "type": "tab",
+        "label": "WS Client to K1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0b54dfa8b425d49c",
+        "type": "websocket out",
+        "z": "6cab71502c9881aa",
+        "name": "K1 Max WS Client",
+        "server": "",
+        "client": "097353b4bc19c9ef",
+        "x": 1330,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "655f6516981b0083",
+        "type": "websocket in",
+        "z": "6cab71502c9881aa",
+        "name": "K1 Max Server Listner",
+        "server": "",
+        "client": "097353b4bc19c9ef",
+        "x": 140,
+        "y": 120,
+        "wires": [
+            [
+                "1c29c94c0ee53bf7"
+            ]
+        ]
+    },
+    {
+        "id": "f2969419042aa7c8",
+        "type": "delay",
+        "z": "6cab71502c9881aa",
+        "name": "Rate Limiter",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "5",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": true,
+        "outputs": 1,
+        "x": 610,
+        "y": 120,
+        "wires": [
+            [
+                "6302524329aed275",
+                "f29814440dbc9bd9",
+                "b7e3c681500d89c4",
+                "c6cbbaf9d3ef57d2",
+                "c22265a7cd35873a",
+                "759622e11d543373",
+                "f76d2b77939414e3"
+            ]
+        ]
+    },
+    {
+        "id": "6302524329aed275",
+        "type": "ha-sensor",
+        "z": "6cab71502c9881aa",
+        "name": "Bed Temp",
+        "entityConfig": "7578a32c5b795a13",
+        "version": 0,
+        "state": "payload.bedTemp0.state",
+        "stateType": "msg",
+        "attributes": [
+            {
+                "property": "Target",
+                "value": "payload.targetBedTemp0.state",
+                "valueType": "msg"
+            },
+            {
+                "property": "Max",
+                "value": "payload.maxBedTemp.state",
+                "valueType": "msg"
+            }
+        ],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 920,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f29814440dbc9bd9",
+        "type": "ha-sensor",
+        "z": "6cab71502c9881aa",
+        "name": "Box Temp",
+        "entityConfig": "26d7afa09410091a",
+        "version": 0,
+        "state": "payload.boxTemp.state",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 920,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1c29c94c0ee53bf7",
+        "type": "function",
+        "z": "6cab71502c9881aa",
+        "name": "Parse message ",
+        "func": "let inputData;\nif (typeof msg.payload === 'string') {\n    inputData = JSON.parse(msg.payload);\n} else {\n    inputData = msg.payload;\n}\n\n// Get the current stored data from the node's context (or initialize it)\nlet storedData = context.get('latestData') || {};\n\n// Update stored data with the latest received data\nfor (let key in inputData) {\n    storedData[key] = inputData[key];\n}\n\n// Initialize msg.payload as an empty object\nmsg.payload = {};\n\n// For each key in storedData, create msg.payload.key with the value { \"state\": value }\nfor (let key in storedData) {\n    if (key === 'model') {\n        // If the key is 'model', create msg.payload.system with specific attributes\n        msg.payload.system = {\n            \"state\": storedData[key],\n            \"attributes\": {\n                \"hostname\": storedData['hostname'],\n                \"Versions\": storedData['modelVersion']\n            }\n        };\n    } else if (key === 'lightSw' || key === 'fan' || key === 'fanCase' || key === 'fanAuxiliary') {\n        msg.payload[key] = storedData[key];\n    } else if (key !== 'hostname' && key !== 'modelVersion') {\n        // For other keys, just create msg.payload.key as { \"state\": value }\n        msg.payload[key] = { \"state\": storedData[key] };\n    }\n}\n\n// Remove msg.payload.state if it exists\nif (msg.payload.state) {\n    delete msg.payload.state;\n}\n\n// Update the context with the latest data\ncontext.set('latestData', storedData);\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 120,
+        "wires": [
+            [
+                "f2969419042aa7c8",
+                "96a8511f4938bea4",
+                "b57b439e82088a7a",
+                "dc55e6287b741e93",
+                "4a2991071d0476f7"
+            ]
+        ]
+    },
+    {
+        "id": "b7e3c681500d89c4",
+        "type": "ha-sensor",
+        "z": "6cab71502c9881aa",
+        "name": "Progress",
+        "entityConfig": "5032e378be7b401d",
+        "version": 0,
+        "state": "payload.printProgress.state",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "payload.printProgress.state",
+                "valueType": "jsonata"
+            }
+        ],
+        "x": 920,
+        "y": 200,
+        "wires": [
+            [
+                "6458c37d109fda1a",
+                "dc2c98f81cd7636d"
+            ]
+        ]
+    },
+    {
+        "id": "fe32e717b38476e0",
+        "type": "ha-switch",
+        "z": "6cab71502c9881aa",
+        "name": "Light",
+        "version": 0,
+        "debugenabled": false,
+        "inputs": 1,
+        "outputs": 2,
+        "entityConfig": "091113f6c1354a5e",
+        "enableInput": true,
+        "outputOnStateChange": false,
+        "outputProperties": [
+            {
+                "property": "outputType",
+                "propertyType": "msg",
+                "value": "state change",
+                "valueType": "str"
+            },
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            }
+        ],
+        "x": 450,
+        "y": 560,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "5e512055476b8e2d",
+        "type": "server-state-changed",
+        "z": "6cab71502c9881aa",
+        "name": "State change of Light",
+        "server": "523b42f.5c0cbbc",
+        "version": 6,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entities": {
+            "entity": [
+                "switch.k1_printer_light"
+            ],
+            "substring": [],
+            "regex": []
+        },
+        "outputInitially": false,
+        "stateType": "str",
+        "ifState": "",
+        "ifStateType": "str",
+        "ifStateOperator": "is",
+        "outputOnlyOnStateChange": true,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            }
+        ],
+        "x": 760,
+        "y": 880,
+        "wires": [
+            [
+                "0302fa1e14d53eef",
+                "09ceebba3e3180b4"
+            ]
+        ]
+    },
+    {
+        "id": "96a8511f4938bea4",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload.lightSw",
+                "pt": "msg",
+                "to": "enable",
+                "tot": "msg"
+            },
+            {
+                "t": "change",
+                "p": "enable",
+                "pt": "msg",
+                "from": "1",
+                "fromt": "num",
+                "to": "true",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "enable",
+                "pt": "msg",
+                "from": "0",
+                "fromt": "num",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 140,
+        "y": 560,
+        "wires": [
+            [
+                "fe32e717b38476e0",
+                "ac2b3468797e7026"
+            ]
+        ]
+    },
+    {
+        "id": "0302fa1e14d53eef",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "Define WS Payload",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "on",
+                "fromt": "str",
+                "to": "{\"method\":\"set\",\"params\":{\"lightSw\":1}}",
+                "tot": "json"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "off",
+                "fromt": "str",
+                "to": "{\"method\":\"set\",\"params\":{\"lightSw\":0}}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1030,
+        "y": 860,
+        "wires": [
+            [
+                "0b54dfa8b425d49c"
+            ]
+        ]
+    },
+    {
+        "id": "30bdeb52fb6c4e83",
+        "type": "ha-switch",
+        "z": "6cab71502c9881aa",
+        "name": "Model Fan",
+        "version": 0,
+        "debugenabled": false,
+        "inputs": 1,
+        "outputs": 2,
+        "entityConfig": "48665f40e3498b0f",
+        "enableInput": true,
+        "outputOnStateChange": false,
+        "outputProperties": [
+            {
+                "property": "outputType",
+                "propertyType": "msg",
+                "value": "state change",
+                "valueType": "str"
+            },
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            }
+        ],
+        "x": 460,
+        "y": 620,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "7ef902141b3f1f12",
+        "type": "ha-switch",
+        "z": "6cab71502c9881aa",
+        "name": "Case Fan",
+        "version": 0,
+        "debugenabled": false,
+        "inputs": 1,
+        "outputs": 2,
+        "entityConfig": "86e33e0b8071ce76",
+        "enableInput": true,
+        "outputOnStateChange": false,
+        "outputProperties": [
+            {
+                "property": "outputType",
+                "propertyType": "msg",
+                "value": "state change",
+                "valueType": "str"
+            },
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            }
+        ],
+        "x": 460,
+        "y": 680,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "62a9bbba3e302981",
+        "type": "ha-switch",
+        "z": "6cab71502c9881aa",
+        "name": "Side Fan",
+        "version": 0,
+        "debugenabled": false,
+        "inputs": 1,
+        "outputs": 2,
+        "entityConfig": "173a5d5bb26af07d",
+        "enableInput": true,
+        "outputOnStateChange": false,
+        "outputProperties": [
+            {
+                "property": "outputType",
+                "propertyType": "msg",
+                "value": "state change",
+                "valueType": "str"
+            },
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            }
+        ],
+        "x": 460,
+        "y": 740,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "b57b439e82088a7a",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload.fan",
+                "pt": "msg",
+                "to": "enable",
+                "tot": "msg"
+            },
+            {
+                "t": "change",
+                "p": "enable",
+                "pt": "msg",
+                "from": "1",
+                "fromt": "num",
+                "to": "true",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "enable",
+                "pt": "msg",
+                "from": "0",
+                "fromt": "num",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 140,
+        "y": 620,
+        "wires": [
+            [
+                "30bdeb52fb6c4e83",
+                "928ad1df726dd86d"
+            ]
+        ]
+    },
+    {
+        "id": "dc55e6287b741e93",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload.fanCase",
+                "pt": "msg",
+                "to": "enable",
+                "tot": "msg"
+            },
+            {
+                "t": "change",
+                "p": "enable",
+                "pt": "msg",
+                "from": "1",
+                "fromt": "num",
+                "to": "true",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "enable",
+                "pt": "msg",
+                "from": "0",
+                "fromt": "num",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 140,
+        "y": 680,
+        "wires": [
+            [
+                "7ef902141b3f1f12",
+                "ddf23a2606151347"
+            ]
+        ]
+    },
+    {
+        "id": "4a2991071d0476f7",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload.fanAuxiliary",
+                "pt": "msg",
+                "to": "enable",
+                "tot": "msg"
+            },
+            {
+                "t": "change",
+                "p": "enable",
+                "pt": "msg",
+                "from": "1",
+                "fromt": "num",
+                "to": "true",
+                "tot": "bool"
+            },
+            {
+                "t": "change",
+                "p": "enable",
+                "pt": "msg",
+                "from": "0",
+                "fromt": "num",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 140,
+        "y": 740,
+        "wires": [
+            [
+                "62a9bbba3e302981",
+                "cd6296f2c79d0189"
+            ]
+        ]
+    },
+    {
+        "id": "d47b2ee780ef6d62",
+        "type": "server-state-changed",
+        "z": "6cab71502c9881aa",
+        "name": "State change of Model Fan",
+        "server": "523b42f.5c0cbbc",
+        "version": 6,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entities": {
+            "entity": [
+                "switch.k1_printer_model_fan"
+            ],
+            "substring": [],
+            "regex": []
+        },
+        "outputInitially": false,
+        "stateType": "str",
+        "ifState": "",
+        "ifStateType": "str",
+        "ifStateOperator": "is",
+        "outputOnlyOnStateChange": true,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            }
+        ],
+        "x": 770,
+        "y": 1000,
+        "wires": [
+            [
+                "95fec6b714dfce73",
+                "7291d479c4c37d13"
+            ]
+        ]
+    },
+    {
+        "id": "9568713ac572f97a",
+        "type": "server-state-changed",
+        "z": "6cab71502c9881aa",
+        "name": "State change of Case Fan",
+        "server": "523b42f.5c0cbbc",
+        "version": 6,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entities": {
+            "entity": [
+                "switch.k1_printer_case_fan"
+            ],
+            "substring": [],
+            "regex": []
+        },
+        "outputInitially": false,
+        "stateType": "str",
+        "ifState": "",
+        "ifStateType": "str",
+        "ifStateOperator": "is",
+        "outputOnlyOnStateChange": true,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            }
+        ],
+        "x": 770,
+        "y": 1100,
+        "wires": [
+            [
+                "351881faeb484fd0",
+                "4c97d29ce315ba94"
+            ]
+        ]
+    },
+    {
+        "id": "cb5870e30053039e",
+        "type": "server-state-changed",
+        "z": "6cab71502c9881aa",
+        "name": "State change of Side Fan",
+        "server": "523b42f.5c0cbbc",
+        "version": 6,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entities": {
+            "entity": [
+                "switch.k1_printer_side_fan"
+            ],
+            "substring": [],
+            "regex": []
+        },
+        "outputInitially": false,
+        "stateType": "str",
+        "ifState": "",
+        "ifStateType": "str",
+        "ifStateOperator": "is",
+        "outputOnlyOnStateChange": true,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            }
+        ],
+        "x": 770,
+        "y": 1220,
+        "wires": [
+            [
+                "adbabfa21db13be4",
+                "2040c937b93ae826"
+            ]
+        ]
+    },
+    {
+        "id": "351881faeb484fd0",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "Define WS Payload",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "on",
+                "fromt": "str",
+                "to": "{\"method\":\"set\",\"params\":{\"fanCase\":1}}",
+                "tot": "json"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "off",
+                "fromt": "str",
+                "to": "{\"method\":\"set\",\"params\":{\"fanCase\":0}}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1030,
+        "y": 1100,
+        "wires": [
+            [
+                "0b54dfa8b425d49c"
+            ]
+        ]
+    },
+    {
+        "id": "95fec6b714dfce73",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "Define WS Payload",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "on",
+                "fromt": "str",
+                "to": "{\"method\":\"set\",\"params\":{\"fan\":1}}",
+                "tot": "json"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "off",
+                "fromt": "str",
+                "to": "{\"method\":\"set\",\"params\":{\"fan\":0}}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1030,
+        "y": 980,
+        "wires": [
+            [
+                "0b54dfa8b425d49c"
+            ]
+        ]
+    },
+    {
+        "id": "adbabfa21db13be4",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "Define WS Payload",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "on",
+                "fromt": "str",
+                "to": "{\"method\":\"set\",\"params\":{\"fanAuxiliary\":1}}",
+                "tot": "json"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "off",
+                "fromt": "str",
+                "to": "{\"method\":\"set\",\"params\":{\"fanAuxiliary\":0}}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1030,
+        "y": 1220,
+        "wires": [
+            [
+                "0b54dfa8b425d49c"
+            ]
+        ]
+    },
+    {
+        "id": "c6cbbaf9d3ef57d2",
+        "type": "ha-sensor",
+        "z": "6cab71502c9881aa",
+        "name": "Total Layer",
+        "entityConfig": "2f4e57088a593dae",
+        "version": 0,
+        "state": "payload.TotalLayer.state",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 930,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c22265a7cd35873a",
+        "type": "ha-sensor",
+        "z": "6cab71502c9881aa",
+        "name": "Working Layer",
+        "entityConfig": "74113de379ea8966",
+        "version": 0,
+        "state": "payload.layer.state",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 940,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "759622e11d543373",
+        "type": "ha-sensor",
+        "z": "6cab71502c9881aa",
+        "name": "Nozzle",
+        "entityConfig": "206ba0c27d6127ac",
+        "version": 0,
+        "state": "payload.nozzleTemp.state",
+        "stateType": "msg",
+        "attributes": [
+            {
+                "property": "Max",
+                "value": "payload.maxNozzleTemp.state",
+                "valueType": "msg"
+            },
+            {
+                "property": "Target",
+                "value": "payload.targetNozzleTemp.state",
+                "valueType": "msg"
+            }
+        ],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 910,
+        "y": 380,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f76d2b77939414e3",
+        "type": "ha-sensor",
+        "z": "6cab71502c9881aa",
+        "name": "Material Length",
+        "entityConfig": "84145fc6a7e02d3a",
+        "version": 0,
+        "state": "payload.usedMaterialLength.state",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 940,
+        "y": 440,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "25654bedbea1b907",
+        "type": "ha-update-config",
+        "z": "6cab71502c9881aa",
+        "name": "Update Entity icon depending on state",
+        "server": "523b42f.5c0cbbc",
+        "entityConfig": "091113f6c1354a5e",
+        "version": 0,
+        "outputProperties": [],
+        "x": 1590,
+        "y": 820,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "09ceebba3e3180b4",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "Define Entity Update",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "on",
+                "fromt": "str",
+                "to": "{\"id\":\"091113f6c1354a5e\",\"icon\":\"mdi:desk-lamp-on\"}",
+                "tot": "json"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "off",
+                "fromt": "str",
+                "to": "{\"id\":\"091113f6c1354a5e\",\"icon\":\"mdi:desk-lamp-off\"}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1040,
+        "y": 820,
+        "wires": [
+            [
+                "25654bedbea1b907"
+            ]
+        ]
+    },
+    {
+        "id": "4c97d29ce315ba94",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "Define Entity Update",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "on",
+                "fromt": "str",
+                "to": "{\"id\":\"86e33e0b8071ce76\",\"icon\":\"mdi:fan-speed-2\"}",
+                "tot": "json"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "off",
+                "fromt": "str",
+                "to": "{\"id\":\"86e33e0b8071ce76\",\"icon\":\"mdi:fan-off\"}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1040,
+        "y": 1060,
+        "wires": [
+            [
+                "f863130425e557fb"
+            ]
+        ]
+    },
+    {
+        "id": "7291d479c4c37d13",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "Define Entity Update",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "on",
+                "fromt": "str",
+                "to": "{\"id\":\"48665f40e3498b0f\",\"icon\":\"mdi:fan-speed-1\"}",
+                "tot": "json"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "off",
+                "fromt": "str",
+                "to": "{\"id\":\"48665f40e3498b0f\",\"icon\":\"mdi:fan-off\"}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1040,
+        "y": 940,
+        "wires": [
+            [
+                "f7fb4dfb12d26a22"
+            ]
+        ]
+    },
+    {
+        "id": "2040c937b93ae826",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "Define Entity Update",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "on",
+                "fromt": "str",
+                "to": "{\"id\":\"173a5d5bb26af07d\",\"icon\":\"mdi:fan-speed-3\"}",
+                "tot": "json"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "off",
+                "fromt": "str",
+                "to": "{\"id\":\"173a5d5bb26af07d\",\"icon\":\"mdi:fan-off\"}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1040,
+        "y": 1180,
+        "wires": [
+            [
+                "d56ab8a42994459a"
+            ]
+        ]
+    },
+    {
+        "id": "f863130425e557fb",
+        "type": "ha-update-config",
+        "z": "6cab71502c9881aa",
+        "name": "Update Entity icon depending on state",
+        "server": "523b42f.5c0cbbc",
+        "entityConfig": "86e33e0b8071ce76",
+        "version": 0,
+        "outputProperties": [],
+        "x": 1590,
+        "y": 1060,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f7fb4dfb12d26a22",
+        "type": "ha-update-config",
+        "z": "6cab71502c9881aa",
+        "name": "Update Entity icon depending on state",
+        "server": "523b42f.5c0cbbc",
+        "entityConfig": "48665f40e3498b0f",
+        "version": 0,
+        "outputProperties": [],
+        "x": 1590,
+        "y": 940,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d56ab8a42994459a",
+        "type": "ha-update-config",
+        "z": "6cab71502c9881aa",
+        "name": "Update Entity icon depending on state",
+        "server": "523b42f.5c0cbbc",
+        "entityConfig": "173a5d5bb26af07d",
+        "version": 0,
+        "outputProperties": [],
+        "x": 1590,
+        "y": 1180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ac2b3468797e7026",
+        "type": "switch",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "property": "enable",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 190,
+        "y": 840,
+        "wires": [
+            [
+                "c73b5da2ab03d61e"
+            ],
+            [
+                "56b93808731178ca"
+            ]
+        ]
+    },
+    {
+        "id": "c73b5da2ab03d61e",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "on",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 820,
+        "wires": [
+            [
+                "09ceebba3e3180b4"
+            ]
+        ]
+    },
+    {
+        "id": "56b93808731178ca",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "off",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 860,
+        "wires": [
+            [
+                "09ceebba3e3180b4"
+            ]
+        ]
+    },
+    {
+        "id": "928ad1df726dd86d",
+        "type": "switch",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "property": "enable",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 190,
+        "y": 960,
+        "wires": [
+            [
+                "1d1d220b87a757bd"
+            ],
+            [
+                "4f022c7b78e195e2"
+            ]
+        ]
+    },
+    {
+        "id": "1d1d220b87a757bd",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "on",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 940,
+        "wires": [
+            [
+                "7291d479c4c37d13"
+            ]
+        ]
+    },
+    {
+        "id": "4f022c7b78e195e2",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "off",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 980,
+        "wires": [
+            [
+                "7291d479c4c37d13"
+            ]
+        ]
+    },
+    {
+        "id": "ddf23a2606151347",
+        "type": "switch",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "property": "enable",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 190,
+        "y": 1060,
+        "wires": [
+            [
+                "a36cba75360e10fe"
+            ],
+            [
+                "3c467525161e0767"
+            ]
+        ]
+    },
+    {
+        "id": "a36cba75360e10fe",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "on",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 1040,
+        "wires": [
+            [
+                "4c97d29ce315ba94"
+            ]
+        ]
+    },
+    {
+        "id": "3c467525161e0767",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "off",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 1080,
+        "wires": [
+            [
+                "4c97d29ce315ba94"
+            ]
+        ]
+    },
+    {
+        "id": "cd6296f2c79d0189",
+        "type": "switch",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "property": "enable",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 190,
+        "y": 1180,
+        "wires": [
+            [
+                "3b71193d01fdbfda"
+            ],
+            [
+                "4a7930bb697c59b4"
+            ]
+        ]
+    },
+    {
+        "id": "3b71193d01fdbfda",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "on",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 1160,
+        "wires": [
+            [
+                "2040c937b93ae826"
+            ]
+        ]
+    },
+    {
+        "id": "4a7930bb697c59b4",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "off",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 1200,
+        "wires": [
+            [
+                "2040c937b93ae826"
+            ]
+        ]
+    },
+    {
+        "id": "96f636185b530180",
+        "type": "ha-update-config",
+        "z": "6cab71502c9881aa",
+        "name": "Update Entity icon depending on state",
+        "server": "523b42f.5c0cbbc",
+        "entityConfig": "2f4e57088a593dae",
+        "version": 0,
+        "outputProperties": [],
+        "x": 1610,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6458c37d109fda1a",
+        "type": "function",
+        "z": "6cab71502c9881aa",
+        "name": "Set Layer Icon depending on Progress",
+        "func": "let id = \"74113de379ea8966\"\nif (msg.payload === 0) {\n    // If the key is 'model', create msg.payload.system with specific attributes\n    msg.payload = {\n        \"id\": id,\n        \"icon\": \"mdi:layers-off-outline\"\n    };\n} else if (msg.payload > 0 && msg.payload <= 50) {\n    msg.payload = {\n        \"id\": id,\n        \"icon\": \"mdi:layers-outline\"\n    };\n} else {\n    msg.payload = {\n        \"id\": id,\n        \"icon\": \"mdi:layers-triple-outline\"\n    };\n}\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1270,
+        "y": 260,
+        "wires": [
+            [
+                "96f636185b530180"
+            ]
+        ]
+    },
+    {
+        "id": "7b5a2e0b0480b0a8",
+        "type": "ha-update-config",
+        "z": "6cab71502c9881aa",
+        "name": "Update Entity icon depending on state",
+        "server": "523b42f.5c0cbbc",
+        "entityConfig": "5032e378be7b401d",
+        "version": 0,
+        "outputProperties": [],
+        "x": 1530,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "dc2c98f81cd7636d",
+        "type": "function",
+        "z": "6cab71502c9881aa",
+        "name": "Set Progress Icon",
+        "func": "let id = \"5032e378be7b401d\"\nif (msg.payload === 0) {\n    // If the key is 'model', create msg.payload.system with specific attributes\n    msg.payload = {\n        \"id\": id,\n        \"icon\": \"mdi:stop-circle-outline\"\n    };\n} else if (msg.payload > 0 && msg.payload <= 25) {\n    msg.payload = {\n        \"id\": id,\n        \"icon\": \"mdi:circle-slice-2\"\n    };\n} else if (msg.payload > 25 && msg.payload <= 50) {\n    msg.payload = {\n        \"id\": id,\n        \"icon\": \"mdi:circle-slice-4\"\n    };\n} else if (msg.payload > 50 && msg.payload <= 75) {\n    msg.payload = {\n        \"id\": id,\n        \"icon\": \"mdi:circle-slice-6\"\n    };\n} else {\n    msg.payload = {\n        \"id\": id,\n        \"icon\": \"mdi:circle-slice-8\"\n    };\n}\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1210,
+        "y": 200,
+        "wires": [
+            [
+                "7b5a2e0b0480b0a8"
+            ]
+        ]
+    },
+    {
+        "id": "097353b4bc19c9ef",
+        "type": "websocket-client",
+        "path": "ws://printer_ip:9999",
+        "tls": "",
+        "wholemsg": "false",
+        "hb": "0",
+        "subprotocol": "",
+        "headers": []
+    },
+    {
+        "id": "7578a32c5b795a13",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "Bed Temperature",
+        "version": "6",
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "Bed Temperature"
+            },
+            {
+                "property": "icon",
+                "value": ""
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "temperature"
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": "°C"
+            },
+            {
+                "property": "state_class",
+                "value": "measurement"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "26d7afa09410091a",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "Box Temperature",
+        "version": "6",
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "Box Temperature"
+            },
+            {
+                "property": "icon",
+                "value": ""
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "temperature"
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": "°C"
+            },
+            {
+                "property": "state_class",
+                "value": "measurement"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "5032e378be7b401d",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "Print Progress",
+        "version": "6",
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "Print Progress"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:shoe-print"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": "diagnostic"
+            },
+            {
+                "property": "device_class",
+                "value": ""
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": "%"
+            },
+            {
+                "property": "state_class",
+                "value": "measurement"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "091113f6c1354a5e",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "Box Light",
+        "version": "6",
+        "entityType": "switch",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "K1 Printer Light"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:desk-lamp"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "switch"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "523b42f.5c0cbbc",
+        "type": "server",
+        "name": "Home Assistant",
+        "addon": true
+    },
+    {
+        "id": "48665f40e3498b0f",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "Model Fan",
+        "version": "6",
+        "entityType": "switch",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "Model Fan"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:fan-speed-1"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "switch"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "86e33e0b8071ce76",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "Case Fan",
+        "version": "6",
+        "entityType": "switch",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "Case Fan"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:fan-speed-2"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "switch"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "173a5d5bb26af07d",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "Side Fan",
+        "version": "6",
+        "entityType": "switch",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "Side Fan"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:fan-speed-3"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "switch"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "2f4e57088a593dae",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "K1 Total Layer Count",
+        "version": "6",
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "K1 Total Layer Count"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:layers"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": "diagnostic"
+            },
+            {
+                "property": "device_class",
+                "value": ""
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": ""
+            },
+            {
+                "property": "state_class",
+                "value": "measurement"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "74113de379ea8966",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "K1 Working Layer",
+        "version": "6",
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "K1 Working Layer"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:layers-outline"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": "diagnostic"
+            },
+            {
+                "property": "device_class",
+                "value": ""
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": ""
+            },
+            {
+                "property": "state_class",
+                "value": "measurement"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "206ba0c27d6127ac",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "K1 Nozzle Temp",
+        "version": "6",
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "K1 Nozzle Temp"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:printer-3d-nozzle-heat"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "temperature"
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": "°C"
+            },
+            {
+                "property": "state_class",
+                "value": "measurement"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "84145fc6a7e02d3a",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "K1 Used Material Length",
+        "version": "6",
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "K1 Used Material Length"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:spider-web"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "distance"
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": "cm"
+            },
+            {
+                "property": "state_class",
+                "value": ""
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "2403d7e38434b26c",
+        "type": "ha-device-config",
+        "name": "K1 Printer",
+        "hwVersion": "CR4CU220812S11",
+        "manufacturer": "Creality",
+        "model": "K1 Max",
+        "swVersion": "1.3.3.36"
+    }
+]
