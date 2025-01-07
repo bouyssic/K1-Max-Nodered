@@ -60,7 +60,8 @@
                 "c6cbbaf9d3ef57d2",
                 "c22265a7cd35873a",
                 "759622e11d543373",
-                "f76d2b77939414e3"
+                "f76d2b77939414e3",
+                "539de3900c07bc28"
             ]
         ]
     },
@@ -144,7 +145,18 @@
         "version": 0,
         "state": "payload.printProgress.state",
         "stateType": "msg",
-        "attributes": [],
+        "attributes": [
+            {
+                "property": "Remaining Time",
+                "value": "payload.printLeftTime.state",
+                "valueType": "msg"
+            },
+            {
+                "property": "Printing Time",
+                "value": "payload.printJobTime.state",
+                "valueType": "str"
+            }
+        ],
         "inputOverride": "allow",
         "outputProperties": [
             {
@@ -879,7 +891,7 @@
         "inputOverride": "allow",
         "outputProperties": [],
         "x": 910,
-        "y": 380,
+        "y": 20,
         "wires": [
             []
         ]
@@ -897,7 +909,7 @@
         "inputOverride": "allow",
         "outputProperties": [],
         "x": 940,
-        "y": 440,
+        "y": 380,
         "wires": [
             []
         ]
@@ -1517,12 +1529,165 @@
         ]
     },
     {
+        "id": "38520e9fe5092f43",
+        "type": "ha-sensor",
+        "z": "6cab71502c9881aa",
+        "name": "Time Left",
+        "entityConfig": "b3a796f33127b2f0",
+        "version": 0,
+        "state": "payload.printLeftTimeFormatted",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 1220,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "73cec3a503afd42a",
+        "type": "ha-sensor",
+        "z": "6cab71502c9881aa",
+        "name": "Print Time",
+        "entityConfig": "40bdcabb19d7b6ae",
+        "version": 0,
+        "state": "payload.printJobTimeFormatted",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 1230,
+        "y": 480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "539de3900c07bc28",
+        "type": "function",
+        "z": "6cab71502c9881aa",
+        "name": "Fx Convert s to hh:hh:mm",
+        "func": "// Function to format seconds into xh xm xs\nfunction formatSeconds(seconds) {\n    if (typeof seconds !== 'number' || isNaN(seconds)) {\n        return \"Invalid input\";\n    }\n\n    if (seconds < 0) {\n        seconds = 0;\n    }\n\n    let hours = Math.floor(seconds / 3600);\n    let minutes = Math.floor((seconds % 3600) / 60);\n    let remainingSeconds = seconds % 60;\n\n    let timeString = \"\";\n\n    if (hours > 0) {\n        timeString += hours + \"h \";\n    }\n\n    timeString += minutes + \"m \" + remainingSeconds + \"s\";\n\n    return timeString.trim(); // Remove trailing space\n}\n\n// Handle printLeftTime\nif (msg.payload && typeof msg.payload.printLeftTime === 'object' && msg.payload.printLeftTime.state !== undefined) {\n    msg.payload.printLeftTimeFormatted = formatSeconds(msg.payload.printLeftTime.state);\n} else {\n    msg.payload.printLeftTimeFormatted = \"N/A\";\n}\n\n// Handle printJobTime\nif (msg.payload && typeof msg.payload.printJobTime === 'object' && msg.payload.printJobTime.state !== undefined) {\n    msg.payload.printJobTimeFormatted = formatSeconds(msg.payload.printJobTime.state);\n} else {\n    msg.payload.printJobTimeFormatted = \"N/A\";\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 970,
+        "y": 460,
+        "wires": [
+            [
+                "73cec3a503afd42a",
+                "38520e9fe5092f43"
+            ]
+        ]
+    },
+    {
+        "id": "58a38768e7cb04fd",
+        "type": "change",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "enable",
+                "pt": "msg",
+                "to": "false",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 640,
+        "y": 320,
+        "wires": [
+            [
+                "fe32e717b38476e0",
+                "30bdeb52fb6c4e83",
+                "7ef902141b3f1f12",
+                "62a9bbba3e302981"
+            ]
+        ]
+    },
+    {
+        "id": "3875678fda583747",
+        "type": "switch",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "property": "status.event",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "disconnect",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 250,
+        "y": 320,
+        "wires": [
+            [
+                "c4611e2b728a7be2"
+            ]
+        ]
+    },
+    {
+        "id": "6bb2b181b9e3bd06",
+        "type": "status",
+        "z": "6cab71502c9881aa",
+        "name": "",
+        "scope": [
+            "655f6516981b0083"
+        ],
+        "x": 80,
+        "y": 320,
+        "wires": [
+            [
+                "3875678fda583747"
+            ]
+        ]
+    },
+    {
+        "id": "c4611e2b728a7be2",
+        "type": "delay",
+        "z": "6cab71502c9881aa",
+        "name": "Rate Limiter",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "10",
+        "rateUnits": "minute",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 450,
+        "y": 320,
+        "wires": [
+            [
+                "58a38768e7cb04fd"
+            ]
+        ]
+    },
+    {
         "id": "097353b4bc19c9ef",
         "type": "websocket-client",
-        "path": "ws://printer_ip:9999",
+        "path": "ws://your_printer_ip:9999",
         "tls": "",
         "wholemsg": "false",
-        "hb": "0",
+        "hb": "10",
         "subprotocol": "",
         "headers": []
     },
@@ -1941,7 +2106,89 @@
             },
             {
                 "property": "unit_of_measurement",
-                "value": "cm"
+                "value": "mm"
+            },
+            {
+                "property": "state_class",
+                "value": ""
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "b3a796f33127b2f0",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "K1 Time Left",
+        "version": 6,
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "K1 Time Left"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:timer-outline"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": ""
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": ""
+            },
+            {
+                "property": "state_class",
+                "value": ""
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "40bdcabb19d7b6ae",
+        "type": "ha-entity-config",
+        "server": "523b42f.5c0cbbc",
+        "deviceConfig": "2403d7e38434b26c",
+        "name": "K1 Print Time",
+        "version": 6,
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "K1 Print Time"
+            },
+            {
+                "property": "icon",
+                "value": "mdi:clock-outline"
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": ""
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": ""
             },
             {
                 "property": "state_class",
