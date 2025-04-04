@@ -1684,7 +1684,7 @@
     {
         "id": "097353b4bc19c9ef",
         "type": "websocket-client",
-        "path": "ws://k1.bouyssi.me:9999",
+        "path": "ws://ip_printer:9999",
         "tls": "",
         "wholemsg": "false",
         "hb": "10",
